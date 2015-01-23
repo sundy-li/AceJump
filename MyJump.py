@@ -1,7 +1,8 @@
 import sublime, sublime_plugin
 
 begin_char = 'a'
-letters = [chr(x+ord(begin_char)) for x in range(26)]
+match_char_length = 26
+letters = [chr(x + ord(begin_char)) for x in range(match_char_length)]
 regexp = r"{}[\d\w]*"
 
 is_mark = False
@@ -9,21 +10,25 @@ words = []
 
 ## hash the number to string
 def number_to_string(num):
-	length = len(letters)
 	str = ""
 	if num == 0:
 		return begin_char
+
 	while num:
-		str += letters[int(num%length)]
-		num //= length
+		str += letters[int(num % match_char_length)]
+		num //= match_char_length
 	return str[::-1]
-	
 
 def string_to_num(str):
 	num = 0
-	lenght = len(letters)
 	for s in str:
-		num = num * lenght + (ord(s) - ord(begin_char))
+		num = num * match_char_length + (ord(s) - ord(begin_char))
+
+	global words
+	length = len(words)
+	if num >= length or num < 0 - length:
+		num = None
+
 	return num
 
 class MyJumpCommand(sublime_plugin.WindowCommand):
@@ -37,8 +42,14 @@ class MyJumpCommand(sublime_plugin.WindowCommand):
 		## the labels shows that where the characters we are looking for may be in
 		self.labels = False
 		self.window.show_input_panel(
-			"AceJump", "",self.init,self.change,self.cancel
+			"AceJump", "",
+			self.init, self.change, self.cancel
 			)
+
+	def init(self, command):
+		self.cancel()
+		if len(command) > 1 :
+			self.jump(command)
 
 	def change(self, command):
 		if not command:
@@ -49,11 +60,6 @@ class MyJumpCommand(sublime_plugin.WindowCommand):
 		else:
 			self.jump(command)
 		return
-
-	def init(self, command):
-		self.cancel()
-		if len(command) > 1 :
-			self.jump(command)
 
 	def cancel(self):
 		if is_mark:
@@ -79,6 +85,7 @@ class MyJumpCommand(sublime_plugin.WindowCommand):
 
 
 class AceMarkCommand(sublime_plugin.TextCommand):
+	
 	def run(self,edit,char):
 		if len(char) > 0 :
 			self.mark(edit,char)
@@ -86,7 +93,6 @@ class AceMarkCommand(sublime_plugin.TextCommand):
 			self.unmark(edit)
 
 	def mark(self,edit,char):
-		char = char.lower()
 		global is_mark
 		if is_mark:
 			self.unmark(edit)
@@ -121,7 +127,7 @@ class AceMarkCommand(sublime_plugin.TextCommand):
 		is_mark = True
 		# Which scope to use here, string?
 		# comment, string
-		self.view.add_regions("AceJumpMarks", mark_regions, "comment")
+		self.view.add_regions("AceJumpMarks", mark_regions, "string")
 		self.view.set_status(
 			"AceJump", "Found {} match{} for character {}".format(matches, "es" if matches > 1 else "", char)
 		)
