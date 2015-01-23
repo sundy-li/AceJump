@@ -1,0 +1,3 @@
+[
+	{ "keys": ["super+shift+;"], "command": "my_jump" }
+]
