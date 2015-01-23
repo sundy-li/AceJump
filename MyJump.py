@@ -69,7 +69,6 @@ class MyJumpCommand(sublime_plugin.WindowCommand):
 			global words
 			region = words[index]
 			self.view.run_command("ace_jump_to_place" , {"index" : region.begin()})
-			self.back()
 		return
 
 	def back(self):
@@ -86,6 +85,7 @@ class AceMarkCommand(sublime_plugin.TextCommand):
 			self.unmark(edit)
 
 	def mark(self,edit,char):
+		char = char.lower()
 		global is_mark
 		if is_mark:
 			self.unmark(edit)
@@ -120,7 +120,7 @@ class AceMarkCommand(sublime_plugin.TextCommand):
 		is_mark = True
 		# Which scope to use here, string?
 		# comment, string
-		self.view.add_regions("AceJumpMarks", mark_regions, "string")
+		self.view.add_regions("AceJumpMarks", mark_regions, "comment")
 		self.view.set_status(
 			"AceJump", "Found {} match{} for character {}".format(matches, "es" if matches > 1 else "", char)
 		)
