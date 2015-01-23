@@ -105,7 +105,7 @@ class AceMarkCommand(sublime_plugin.TextCommand):
 		pos = visible_region.begin()
 		last_pos = visible_region.end()
 		while pos < last_pos :
-			word = self.view.find(regexp.format(char), pos )
+			word = self.view.find(regexp.format(char), pos , sublime.IGNORECASE)
 			if word:
 				words.append(word)
 				tmp_mark_wds = number_to_string(num)
@@ -148,8 +148,8 @@ class AceJumpToPlaceCommand(sublime_plugin.TextCommand):
 		## add marks 
 		self.view.sel().clear()
 		self.view.sel().add(sublime.Region(index))
-		self.view.add_regions("mark_line", [sublime.Region(index,index)], "string", "bookmark")
 
+		self.view.add_regions("mark_line", [sublime.Region(index,index)], "string", "bookmark")
 		self.view.show(index)
 
 
