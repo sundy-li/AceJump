@@ -1,4 +1,5 @@
 import sublime, sublime_plugin
+import time
 
 begin_char = 'a'
 match_char_length = 26
@@ -59,23 +60,21 @@ class MyJumpCommand(sublime_plugin.WindowCommand):
 			self.view.run_command("ace_mark" , {"char" : command})
 		else:
 			self.jump(command)
+
 		return
 
 	def cancel(self):
 		if is_mark:
-			#self.unlabel_words()
 			self.view.run_command("ace_mark", {"char": ""})
 		self.view.erase_status("AceJump")
-		# if caller != input:
 		sublime.status_message("AceJump: Cancelled")
 
 	def jump(self, command):
 		index = string_to_num(command[1:])
-		if index :
+		if index >= 0 :
 			global words
 			region = words[index]
 			self.view.run_command("ace_jump_to_place" , {"index" : region.begin()})
-			self.back()
 		return
 
 	def back(self):
@@ -136,6 +135,7 @@ class AceMarkCommand(sublime_plugin.TextCommand):
 		global is_mark
 		if is_mark:
 			self.view.erase_regions("AceJumpMarks")
+			print("erasing..")
 			self.view.erase_regions("mark_line")
 			self.view.end_edit(edit)
 			self.view.run_command("undo")
@@ -148,5 +148,8 @@ class AceJumpToPlaceCommand(sublime_plugin.TextCommand):
 		## add marks 
 		self.view.sel().clear()
 		self.view.sel().add(sublime.Region(index))
+		self.view.add_regions("mark_line", [sublime.Region(index,index)], "string", "bookmark")
+
 		self.view.show(index)
-		self.view.add_regions("mark_line", [sublime.Region(index,index)], "mark", "dot", sublime.DRAW_STIPPLED_UNDERLINE)
+
+
