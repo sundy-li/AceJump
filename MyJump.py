@@ -69,6 +69,7 @@ class MyJumpCommand(sublime_plugin.WindowCommand):
 			global words
 			region = words[index]
 			self.view.run_command("ace_jump_to_place" , {"index" : region.begin()})
+			self.back()
 		return
 
 	def back(self):
