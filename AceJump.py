@@ -4,10 +4,13 @@ import time
 begin_char = 'a'
 match_char_length = 26
 letters = [chr(x + ord(begin_char)) for x in range(match_char_length)]
-regexp = r"{}[\d\w]*"
+regexp = r"{0}[\d\w]*"
 
 is_mark = False
 words = []
+
+##load settings
+settings = sublime.load_settings("ace_jump.sublime-settings")
 
 ## hash the number to string
 def number_to_string(num):
@@ -25,16 +28,14 @@ def string_to_num(str):
 	for s in str:
 		num = num * match_char_length + (ord(s) - ord(begin_char))
 
-	global words
-	length = len(words)
-	if num >= length or num < 0 - length:
-		num = None
-
 	return num
 
-class MyJumpCommand(sublime_plugin.WindowCommand):
+class AceJumperCommand(sublime_plugin.WindowCommand):
 
 	def run(self):
+		global settings
+		self.hint_length = settings.get("hint_length")
+		print(self.hint_length, "---")
 		self.view = self.window.active_view()
 		self.back()
 		## wheter has modify the view
@@ -44,57 +45,51 @@ class MyJumpCommand(sublime_plugin.WindowCommand):
 		self.labels = False
 		self.window.show_input_panel(
 			"AceJump", "",
-			self.init, self.change, self.cancel
+			self.done, self.change, self.cancel
 			)
 
-	def init(self, command):
+	def done(self, command):
 		self.cancel()
-		if len(command) > 1 :
-			self.jump(command)
+		self.jump(command)
+		sublime.set_timeout(self.view.run_command("ace_tmp"),4000)
+		
 
 	def change(self, command):
 		if not command:
 			self.back()
-		elif len(command) == 1:
+		elif len(command) == self.hint_length:
+			self.cancel()
 			self.str = command
 			self.view.run_command("ace_mark" , {"char" : command})
-		else:
+		elif len(command) > self.hint_length:
 			self.jump(command)
-
-		return
 
 	def cancel(self):
 		if is_mark:
-			self.view.run_command("ace_mark", {"char": ""})
+			self.view.run_command("ace_un_mark")
 		self.view.erase_status("AceJump")
 		sublime.status_message("AceJump: Cancelled")
 
 	def jump(self, command):
-		index = string_to_num(command[1:])
-		if index >= 0 :
+		index = string_to_num(command[self.hint_length:])
+		if (index >= 0) :
 			global words
 			region = words[index]
 			self.view.run_command("ace_jump_to_place" , {"index" : region.begin()})
-		return
 
 	def back(self):
 		self.str = ""
-		self.view.run_command("ace_mark" , {"char" : ""})
+		self.view.run_command("ace_un_mark")
 
 
 
 class AceMarkCommand(sublime_plugin.TextCommand):
 	
-	def run(self,edit,char):
-		if len(char) > 0 :
-			self.mark(edit,char)
-		else:
-			self.unmark(edit)
 
-	def mark(self,edit,char):
+	def run(self,edit,char):
 		global is_mark
 		if is_mark:
-			self.unmark(edit)
+			self.view.run_command("ace_un_mark")
 		global words # :\
 		# Find words in this region
 		mark_regions = []
@@ -131,11 +126,13 @@ class AceMarkCommand(sublime_plugin.TextCommand):
 			"AceJump", "Found {} match{} for character {}".format(matches, "es" if matches > 1 else "", char)
 		)
 
-	def unmark(self,edit):
+
+
+class AceUnMarkCommand(sublime_plugin.TextCommand):
+	def run(self,edit):
 		global is_mark
 		if is_mark:
 			self.view.erase_regions("AceJumpMarks")
-			print("erasing..")
 			self.view.erase_regions("mark_line")
 			self.view.end_edit(edit)
 			self.view.run_command("undo")
@@ -153,3 +150,8 @@ class AceJumpToPlaceCommand(sublime_plugin.TextCommand):
 		self.view.show(index)
 
 
+class AceTmpCommand(sublime_plugin.TextCommand):
+
+	def run(self, edit):
+		## add marks 
+		self.view.erase_regions("mark_line")
