@@ -35,7 +35,6 @@ class AceJumperCommand(sublime_plugin.WindowCommand):
 	def run(self):
 		global settings
 		self.hint_length = settings.get("hint_length")
-		print(self.hint_length, "---")
 		self.view = self.window.active_view()
 		self.back()
 		## wheter has modify the view
