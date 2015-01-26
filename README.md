@@ -10,7 +10,7 @@ Plugin for Sublime Text 2/3, inspired by emacs AceJump.
 ## How to use it
 --------------------------
 
-- Default short cut key is `ctlr+;`( `super + ;` in mac).
+- Default short cut key is `ctrl+;`( `super + ;` in mac).
 
 - When you in Ace-jump mod , input the first letter of the word you want to jump, and it will show some colorful letter-tips( less than 2 characters), just input the tips and Enter, it will jump there... 
 
